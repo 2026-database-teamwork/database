@@ -42,3 +42,20 @@ npm run build
 ```sh
 npm run lint
 ```
+
+### 깃허브 업로드 하는 방법 (터미널)
+
+1차 상태확인
+```sh
+git status
+```
+
+2차 업로드 및 커밋 메세지 작성 (자동업로드)
+```sh
+git commit -m "쓰고 싶은 메세지"
+```
+
+3차 푸쉬
+```sh
+git push origin develop
+```
