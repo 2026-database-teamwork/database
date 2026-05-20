@@ -80,7 +80,6 @@ const selectCompany = async (company) => {
   
   try {
     const response = await getCarsByCompany(company.companyId);
-    console.log(company.companyId);
     cars.value = response.data || [];
   } catch (error) {
     console.error('Failed to fetch cars:', error);
@@ -94,6 +93,23 @@ const handleLogout = () => {
   localStorage.removeItem('token');
   router.push('/');
 };
+
+const goToRental = (car) => {
+  router.push({
+    name: 'rental',
+    state: {
+      car: JSON.parse(JSON.stringify(car)), // prevent proxy issues
+      companyId: selectedCompany.value.companyId
+    }
+  });
+};
+
+const getImageUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+};
 </script>
 
 <template>
@@ -102,7 +118,14 @@ const handleLogout = () => {
     <header class="bg-snow/80 backdrop-blur-[20px] sticky top-0 z-50 border-b border-silver-mist">
       <div class="max-w-[1200px] mx-auto px-6 h-[52px] flex items-center justify-between">
         <h1 class="text-body font-semibold tracking-body text-ink">Camping Car Rental</h1>
-        <button @click="handleLogout" class="text-cobalt-link text-body-sm font-medium hover:underline">Logout</button>
+        <div class="flex items-center gap-5">
+          <button @click="router.push('/mypage')" class="text-ink hover:text-azure transition-colors" title="My Page">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </button>
+          <button @click="handleLogout" class="text-cobalt-link text-body-sm font-medium hover:underline">Logout</button>
+        </div>
       </div>
     </header>
 
@@ -128,7 +151,7 @@ const handleLogout = () => {
     <main class="max-w-[1200px] mx-auto px-6 mt-12 space-y-16">
       
       <!-- Region Selector -->
-      <section>
+      <section v-if="!selectedCompany">
         <h2 class="text-heading font-bold tracking-heading text-ink mb-6">Select a Region</h2>
         <div class="flex flex-wrap gap-3">
           <button 
@@ -148,7 +171,7 @@ const handleLogout = () => {
       </section>
 
       <!-- Company List -->
-      <section v-if="selectedRegion">
+      <section v-if="selectedRegion && !selectedCompany">
         <div class="flex items-end justify-between mb-6">
           <h2 class="text-heading-sm font-bold tracking-heading-sm text-ink">Companies in {{ selectedRegion }}</h2>
         </div>
@@ -160,54 +183,62 @@ const handleLogout = () => {
           <div 
             v-for="company in companies" 
             :key="company.companyId"
-            @click="selectCompany(company)"
-            :class="[
-              'p-7 rounded-cards cursor-pointer transition-transform hover:scale-[1.02]',
-              selectedCompany?.companyId === company.companyId
-                ? 'bg-ink text-snow'
-                : 'bg-snow text-ink'
-            ]"
+            class="bg-snow p-[28px] rounded-cards flex flex-col justify-between group"
           >
-            <h3 class="text-subheading font-bold tracking-subheading mb-2">{{ company.companyName }}</h3>
-            <p :class="selectedCompany?.companyId === company.companyId ? 'text-snow/80' : 'text-graphite'" class="text-body-sm mb-4">
-              {{ company.companyAddress }}
-            </p>
-            <div class="flex flex-col gap-1 text-caption">
-              <span>📞 {{ company.companyPhone }}</span>
-              <span>✉️ {{ company.representativeEmail }}</span>
-              <span>👤 {{ company.representativeName }}</span>
+            <div>
+              <h3 class="text-[28px] font-semibold tracking-[-0.005em] leading-[1.1] text-ink mb-2">{{ company.companyName }}</h3>
+              <p class="text-[17px] text-graphite mb-8 leading-[1.47] tracking-[-0.003em]">{{ company.companyAddress }}</p>
+            </div>
+            <div class="flex items-end justify-between">
+               <div class="flex flex-col gap-1 text-[12px] text-graphite">
+                 <span>📞 {{ company.companyPhone }}</span>
+                 <span>✉️ {{ company.representativeEmail }}</span>
+               </div>
+               <button @click="selectCompany(company)" class="text-[17px] text-ink flex items-center gap-1 group-hover:text-cobalt-link transition-colors">
+                 차량 보기
+                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+               </button>
             </div>
           </div>
         </div>
       </section>
 
       <!-- Car List -->
-      <section v-if="selectedCompany" class="pt-8 border-t border-silver-mist">
+      <section v-if="selectedCompany" class="animate-fade-in">
+        <button @click="selectedCompany = null; cars = []" class="mb-8 inline-flex items-center text-cobalt-link text-body font-medium hover:underline transition-all">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          회사 목록으로 돌아가기
+        </button>
         <h2 class="text-heading font-bold tracking-heading text-ink mb-2">{{ selectedCompany.companyName }}'s Cars</h2>
         <p class="text-subheading tracking-subheading text-graphite mb-8">Choose your perfect ride.</p>
         
         <div v-if="loadingCars" class="text-graphite py-8">Loading...</div>
         <div v-else-if="cars.length === 0" class="text-graphite py-8">No cars available from this company.</div>
         
-        <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div 
             v-for="car in cars" 
             :key="car.carId"
-            class="bg-snow rounded-cards p-8 flex flex-col md:flex-row gap-8"
+            class="bg-snow rounded-cards flex flex-col overflow-hidden"
           >
-            <div class="flex-shrink-0 w-full md:w-48 h-48 bg-fog rounded-lg overflow-hidden flex items-center justify-center">
-              <img v-if="car.carImage" :src="car.carImage" :alt="car.carName" class="w-full h-full object-cover" />
-              <span v-else class="text-graphite text-caption">No Image</span>
+            <div class="w-full aspect-[4/3] bg-fog flex items-center justify-center">
+              <img v-if="car.carImageUrl" :src="getImageUrl(car.carImageUrl)" :alt="car.carName" class="w-full h-full object-cover" />
+              <span v-else class="text-graphite text-[12px]">No Image</span>
             </div>
-            <div class="flex-grow flex flex-col justify-between">
+            <div class="p-[28px] flex flex-col flex-grow justify-between">
               <div>
-                <h3 class="text-heading-sm font-bold tracking-heading-sm text-ink mb-1">{{ car.carName }}</h3>
-                <p class="text-body-sm text-graphite mb-4">{{ car.carNumber }} • {{ car.numberOfRider }} Riders</p>
-                <p class="text-body text-ink line-clamp-3">{{ car.carDetail }}</p>
+                <h3 class="text-[24px] font-semibold tracking-[-0.015em] text-ink mb-1">{{ car.carName }}</h3>
+                <p class="text-[14px] text-graphite mb-4">{{ car.carNumber }} • {{ car.numberOfRider }} Riders</p>
+                <p class="text-[17px] text-ink line-clamp-2 leading-[1.47]">{{ car.carDetail }}</p>
               </div>
-              <div class="mt-6 flex items-center justify-between">
-                <span class="text-subheading font-bold tracking-subheading text-ink">₩{{ car.carRentalCost.toLocaleString() }}<span class="text-body-sm text-graphite font-normal">/day</span></span>
-                <button class="bg-azure text-snow px-6 py-2 rounded-buttons text-body-sm font-medium hover:bg-cobalt-link transition-colors">
+              <div class="mt-8 flex items-center justify-between border-t border-silver-mist pt-6">
+                <div class="flex flex-col">
+                  <span class="text-[12px] text-graphite mb-1">일일 대여료</span>
+                  <span class="text-[20px] font-semibold text-ink">₩{{ car.carRentalCost.toLocaleString() }}</span>
+                </div>
+                <button @click="goToRental(car)" class="bg-azure text-snow px-5 py-2 rounded-buttons text-[17px] font-medium transition-transform active:scale-[0.98]">
                   Rent
                 </button>
               </div>
@@ -220,20 +251,20 @@ const handleLogout = () => {
       <section class="py-16 border-t border-silver-mist">
         <h2 class="text-heading font-bold tracking-heading text-ink mb-10 text-center">Why Choose Us</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="flex flex-col items-center text-center p-6 bg-snow rounded-cards shadow-sm">
+          <div class="flex flex-col items-center text-center p-[28px] bg-snow rounded-cards">
             <div class="text-4xl mb-4">🚐</div>
-            <h3 class="text-subheading font-bold tracking-subheading text-ink mb-2">Premium Vehicles</h3>
-            <p class="text-body-sm text-graphite">Experience the outdoors with our top-tier, fully equipped camping cars.</p>
+            <h3 class="text-[20px] font-semibold tracking-[-0.01em] text-ink mb-2">Premium Vehicles</h3>
+            <p class="text-[17px] text-graphite leading-[1.47]">Experience the outdoors with our top-tier, fully equipped camping cars.</p>
           </div>
-          <div class="flex flex-col items-center text-center p-6 bg-snow rounded-cards shadow-sm">
+          <div class="flex flex-col items-center text-center p-[28px] bg-snow rounded-cards">
             <div class="text-4xl mb-4">🗺️</div>
-            <h3 class="text-subheading font-bold tracking-subheading text-ink mb-2">Anywhere Access</h3>
-            <p class="text-body-sm text-graphite">Pick up and drop off your vehicle at any of our branches nationwide.</p>
+            <h3 class="text-[20px] font-semibold tracking-[-0.01em] text-ink mb-2">Anywhere Access</h3>
+            <p class="text-[17px] text-graphite leading-[1.47]">Pick up and drop off your vehicle at any of our branches nationwide.</p>
           </div>
-          <div class="flex flex-col items-center text-center p-6 bg-snow rounded-cards shadow-sm">
+          <div class="flex flex-col items-center text-center p-[28px] bg-snow rounded-cards">
             <div class="text-4xl mb-4">🛡️</div>
-            <h3 class="text-subheading font-bold tracking-subheading text-ink mb-2">24/7 Support</h3>
-            <p class="text-body-sm text-graphite">Our customer service team is always here to assist you during your journey.</p>
+            <h3 class="text-[20px] font-semibold tracking-[-0.01em] text-ink mb-2">24/7 Support</h3>
+            <p class="text-[17px] text-graphite leading-[1.47]">Our customer service team is always here to assist you during your journey.</p>
           </div>
         </div>
       </section>
