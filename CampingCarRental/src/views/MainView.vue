@@ -80,6 +80,7 @@ const selectCompany = async (company) => {
   
   try {
     const response = await getCarsByCompany(company.companyId);
+    console.log(company.companyId);
     cars.value = response.data || [];
   } catch (error) {
     console.error('Failed to fetch cars:', error);
