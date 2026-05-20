@@ -109,7 +109,7 @@ def init_db():
     print("모든 테이블이 성공적으로 생성되었습니다.")
 
 # 회원가입 API
-@app.route('/api/auth/register', methods=['POST'])
+@app.route('/api/auth/join', methods=['POST'])
 def api_register():
     name_receive = request.json.get('name')    
     license_receive = request.json.get('license')

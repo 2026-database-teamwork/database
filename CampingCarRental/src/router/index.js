@@ -10,36 +10,36 @@ const router = createRouter({
     {
       path: '/',
       name: 'auth',
-      component: AuthView
+      component: AuthView,
     },
     {
       path: '/main',
       name: 'main',
-      component: MainView
+      component: MainView,
     },
     {
       path: '/rental',
       name: 'rental',
-      component: RentalView
+      component: RentalView,
     },
     {
       path: '/mypage',
       name: 'mypage',
-      component: MyPageView
-    }
-  ]
+      component: MyPageView,
+    },
+  ],
 })
 
 // Simple navigation guard to check token
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = !!localStorage.getItem('token');
-  if ((to.name === 'main' || to.name === 'rental' || to.name === 'mypage') && !isAuthenticated) {
-    next({ name: 'auth' });
-  } else if (to.name === 'auth' && isAuthenticated) {
-    next({ name: 'main' });
-  } else {
-    next();
+router.beforeEach((to, from) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+
+  // 로그인을 안 했는데 메인 페이지로 가려고 하면 가로막기
+  if (to.path === '/main' && !isLoggedIn) {
+    alert('로그인이 필요한 페이지입니다.')
+    return '/login'
   }
-});
+  return true
+})
 
 export default router
