@@ -29,8 +29,6 @@ const router = createRouter({
     },
   ],
 })
-
-// Simple navigation guard to check token
 router.beforeEach((to, from) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
@@ -39,7 +37,6 @@ router.beforeEach((to, from) => {
     alert('로그인이 필요한 페이지입니다.')
     return '/login'
   }
-  return true
 })
 
 export default router
