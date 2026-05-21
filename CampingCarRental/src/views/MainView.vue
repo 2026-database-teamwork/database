@@ -90,6 +90,8 @@ const selectCompany = async (company) => {
 }
 
 const handleLogout = () => {
+  localStorage.removeItem('isLoggedIn')
+  localStorage.removeItem('username')
   localStorage.removeItem('token')
   router.push('/')
 }
