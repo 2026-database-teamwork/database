@@ -86,7 +86,7 @@ const handleRentalSubmit = async () => {
     const payload = {
       carId: carData.carId,
       companyId: companyId,
-      userName: username.value,
+      username: username.value,
       startDateTime: `${startDateTime.value}T00:00:00`,
       endDateTime: `${endDateTime.value}T23:59:59`,
       totalCost: totalCost.value,
