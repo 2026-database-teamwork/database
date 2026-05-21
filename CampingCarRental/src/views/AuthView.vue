@@ -24,12 +24,20 @@ const handleLogin = async () => {
   try {
     const response = await login(loginForm.value)
 
-    if (response.data.result === 'success' || response.message === '로그인 성공') {
-      // 🌟 토큰 대신 로그인 상태 플래그('true')를 브라우저에 저장합니다.
-      localStorage.setItem('isLoggedIn', 'true')
+    // 📌 1. Axios는 헤더명을 소문자로 관리하므로 'authorization'으로 꺼냅니다.
+    const authHeader = response.headers['authorization']
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // 📌 2. 'Bearer ' (7글자) 뒤의 순수 JWT 토큰만 잘라냅니다.
+      const token = authHeader.substring(7)
+
+      // 📌 3. 로컬 스토리지에 저장하고 메인으로 이동!
+      localStorage.setItem('token', token)
       router.push('/main')
     } else {
-      alert('아이디 또는 비밀번호가 틀렸습니다.')
+      // 200 OK는 떴는데 헤더에 토큰이 없는 이상 상황 방어 코드
+      console.error('응답 헤더에 Authorization 토큰이 없습니다:', response.headers)
+      alert('로그인 세션 처리에 실패했습니다.')
     }
   } catch (error) {
     alert('로그인에 실패했습니다. 아이디/비밀번호를 확인해주세요.')
