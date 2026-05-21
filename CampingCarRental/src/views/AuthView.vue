@@ -26,6 +26,7 @@ const handleLogin = async () => {
     if (response.data.result === 'success' || response.message === '로그인 성공') {
       // 🌟 토큰 대신 로그인 상태 플래그('true')를 브라우저에 저장합니다.
       localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('username', loginForm.value.name)
       router.push('/main')
     } else {
       alert('아이디 또는 비밀번호가 틀렸습니다.')
