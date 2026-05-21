@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCompaniesByRegion, getCarsByCompany } from '../api/company'
 
@@ -246,7 +246,7 @@ const getImageUrl = (url) => {
       <section v-if="selectedCompany" class="animate-fade-in">
         <button
           @click="
-            selectedCompany = null
+            selectedCompany = null,
             cars = []
           "
           class="mb-8 inline-flex items-center text-cobalt-link text-body font-medium hover:underline transition-all"

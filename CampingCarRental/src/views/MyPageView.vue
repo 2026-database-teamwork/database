@@ -6,10 +6,12 @@ import { getMyRentals } from '../api/rental'
 const router = useRouter()
 const rentals = ref([])
 const isLoading = ref(true)
+const username = ref('')
 
 onMounted(async () => {
   try {
-    const response = await getMyRentals()
+    username.value = localStorage.getItem('username')
+    const response = await getMyRentals(username.value)
     rentals.value = response.data || []
   } catch (error) {
     console.error('Failed to fetch rentals:', error)
