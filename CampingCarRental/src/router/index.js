@@ -32,11 +32,12 @@ const router = createRouter({
 router.beforeEach((to, from) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
 
-  // 로그인을 안 했는데 메인 페이지로 가려고 하면 가로막기
-  if (to.path === '/main' && !isLoggedIn) {
+  // 로그인을 안 했는데 다른 페이지로 가려고 하면 가로막고 로그인 페이지로 보냄
+  if (to.path !== '/' && !isLoggedIn) {
     alert('로그인이 필요한 페이지입니다.')
-    return '/login'
+    return '/'
   }
 })
+
 
 export default router
