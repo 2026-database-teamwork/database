@@ -1,0 +1,17 @@
+{
+  "name": "camping-car-rental-server",
+  "version": "1.0.0",
+  "description": "Express backend server for Camping Car Rental connecting to Oracle SQL",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "oracledb": "^6.5.0"
+  }
+}
